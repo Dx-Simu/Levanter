@@ -3,14 +3,23 @@ const { spawnSync, spawn } = require('child_process');
 const { existsSync, writeFileSync } = require('fs');
 const path = require('path');
 
-// Render-এর পোর্ট এরর ফিক্স করার জন্য এই ছোট সার্ভারটি যুক্ত করা হয়েছে
+/** * ==========================================
+ * RENDER PORT FIXER (FAKE SERVER)
+ * ==========================================
+ */
 const port = process.env.PORT || 8000;
 http.createServer((req, res) => {
   res.writeHead(200, { 'Content-Type': 'text/plain' });
-  res.end('Levanter Bot is Alive\n');
-}).listen(port);
+  res.end('Levanter Bot is Active and Running...\n');
+}).listen(port, () => {
+  console.log(`Render Health Check Server listening on port ${port}`);
+});
 
-const SESSION_ID = 'levanter_152cc8c0c707384b82949c635fcd13bd03'; // Edit this line only, don't remove ' <- this symbol
+/** * ==========================================
+ * BOT CONFIGURATION
+ * ==========================================
+ */
+const SESSION_ID = 'levanter_152cc8c0c707384b82949c635fcd13bd03'; // Edit this line only
 
 let nodeRestartCount = 0
 const maxNodeRestarts = 5
@@ -48,11 +57,10 @@ function startPm2() {
   })
 
   let restartCount = 0
-  const maxRestarts = 5 // Adjust this value as needed
+  const maxRestarts = 5 
 
   pm2.on('exit', (code) => {
     if (code !== 0) {
-      // console.log('yarn pm2 failed to start, falling back to node...')
       startNode()
     }
   })
@@ -62,14 +70,12 @@ function startPm2() {
     startNode()
   })
 
-  // Check for infinite restarts
   if (pm2.stderr) {
     pm2.stderr.on('data', (data) => {
       const output = data.toString()
       if (output.includes('restart')) {
         restartCount++
         if (restartCount > maxRestarts) {
-          // console.log('yarn pm2 is restarting indefinitely, stopping yarn pm2 and starting node...')
           spawnSync('yarn', ['pm2', 'delete', 'levanter'], { cwd: 'levanter', stdio: 'inherit' })
           startNode()
         }
@@ -82,7 +88,6 @@ function startPm2() {
       const output = data.toString()
       console.log(output)
       if (output.includes('Connecting')) {
-        // console.log('Application is online.')
         restartCount = 0
       }
     })
@@ -90,14 +95,13 @@ function startPm2() {
 }
 
 function installDependencies() {
-  // console.log('Installing dependencies...')
   const installResult = spawnSync(
     'yarn',
     ['install', '--force', '--non-interactive', '--network-concurrency', '3'],
     {
       cwd: 'levanter',
       stdio: 'inherit',
-      env: { ...process.env, CI: 'true' }, // Ensure non-interactive environment
+      env: { ...process.env, CI: 'true' }, 
     }
   )
 
@@ -107,7 +111,7 @@ function installDependencies() {
         installResult.error ? installResult.error.message : 'Unknown error'
       }`
     )
-    process.exit(1) // Exit the process if installation fails
+    process.exit(1)
   }
 }
 
@@ -122,17 +126,13 @@ function checkDependencies() {
     stdio: 'inherit',
   })
 
-  // Check the exit code to determine if there was an error
   if (result.status !== 0) {
     console.log('Some dependencies are missing or incorrectly installed.')
     installDependencies()
-  } else {
-    // console.log('All dependencies are installed properly.')
   }
 }
 
 function cloneRepository() {
-  // console.log('Cloning the repository...')
   const cloneResult = spawnSync(
     'git',
     ['clone', 'https://github.com/lyfe00011/levanter.git', 'levanter'],
@@ -147,7 +147,6 @@ function cloneRepository() {
 
   const configPath = 'levanter/config.env'
   try {
-    // console.log('Writing to config.env...')
     writeFileSync(configPath, `VPS=true\nSESSION_ID=${SESSION_ID}`)
   } catch (err) {
     throw new Error(`Failed to write to config.env: ${err.message}`)
