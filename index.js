@@ -1,8 +1,16 @@
-const { spawnSync, spawn } = require('child_process')
-const { existsSync, writeFileSync } = require('fs')
-const path = require('path')
+const http = require('http');
+const { spawnSync, spawn } = require('child_process');
+const { existsSync, writeFileSync } = require('fs');
+const path = require('path');
 
-const SESSION_ID = 'levanter_152cc8c0c707384b82949c635fcd13bd03' // Edit this line only, don't remove ' <- this symbol
+// Render-এর পোর্ট এরর ফিক্স করার জন্য এই ছোট সার্ভারটি যুক্ত করা হয়েছে
+const port = process.env.PORT || 8000;
+http.createServer((req, res) => {
+  res.writeHead(200, { 'Content-Type': 'text/plain' });
+  res.end('Levanter Bot is Alive\n');
+}).listen(port);
+
+const SESSION_ID = 'levanter_152cc8c0c707384b82949c635fcd13bd03'; // Edit this line only, don't remove ' <- this symbol
 
 let nodeRestartCount = 0
 const maxNodeRestarts = 5
